@@ -43,19 +43,23 @@ def readFromFile(opCode, rsBits, rtBits, rdBits, saBits, funcBits):
 		OP = I>>26
 		opCode.append(OP)
 		print OP
-		# get the RS bits...this is rs...fml I need function code...
-		RS = ((I<<22) & 0xFFFFFFFF) >> 27
+		# get the RS bits
+		RS = ((I<<6) & 0xFFFFFFFF) >> 27
 		print RS
 		rsBits.append(RS)
-		print '----'
-		RT = ((I<<17) & 0xFFFFFFFF) >> 22
+		RT = ((I<<17) & 0xFFFFFFFF) >> 27
 		rtBits.append(RT)
-		RD = ((I<<12) & 0xFFFFFFFF) >> 17
+		print RT
+		RD = ((I<<12) & 0xFFFFFFFF) >> 27
 		rdBits.append(RD)
-		SA = ((I<<7) & 0xFFFFFFFF) >> 12
+		print RD
+		SA = ((I<<7) & 0xFFFFFFFF) >> 27
 		saBits.append(SA)
-		FUNC = ((I<<7) & 0xFFFFFFFF) >> 1
+		print SA
+		FUNC = ((I<<1) & 0xFFFFFFFF) >> 27
 		funcBits.append(FUNC)
+		print FUNC
+		print '----'
 	inFile.close()
 	return address
 

@@ -20,13 +20,12 @@ def imm16BitUnsignedTo32BitSignedConverter( num ):
 		num = num * -1
 	return num
 
-def readFromFile(opCode, rsBits, rtBits, rdBits, saBits, funcBits):
+def readFromFile(opCode, rsBits, rtBits, rdBits, saBits, funcBits, instructions):
 	# how to read binary file and get ints
 	inFile = open( sys.argv[1], 'rb' )
 	# get the file length
 	inFileLen = os.stat( sys.argv[1] )[6]
 	inFileWords = inFileLen / 4
-	instructions = []
 	address = []
 	# read the words from the file
 	for i in range( inFileWords ) :
@@ -47,18 +46,7 @@ def readFromFile(opCode, rsBits, rtBits, rdBits, saBits, funcBits):
 		RS = ((I<<6) & 0xFFFFFFFF) >> 27
 		print RS
 		rsBits.append(RS)
-		RT = ((I<<17) & 0xFFFFFFFF) >> 27
-		rtBits.append(RT)
-		print RT
-		RD = ((I<<12) & 0xFFFFFFFF) >> 27
-		rdBits.append(RD)
-		print RD
-		SA = ((I<<7) & 0xFFFFFFFF) >> 27
-		saBits.append(SA)
-		print SA
-		FUNC = ((I<<1) & 0xFFFFFFFF) >> 27
-		funcBits.append(FUNC)
-		print FUNC
+		
 		print '----'
 	inFile.close()
 	return address
@@ -80,27 +68,29 @@ def newReadFromFile(opCode, rsBits):
 		
 	
 def initializeOPCodes():
-	instructions = [[2, -1, 'J'], [0, 8, 'JR'], [4, -1, 'BEQ'],
-			[1, -1, 'BLTZ'], [0, 20, 'ADD'], [8, -1, 'ADDI'],
-			[0, 22, 'SUB'], [43, -1, 'SW'], [23, -1, 'LW'],
-			[0, 0, 'SLL'], [0, 2, 'SRL'], [0, 18, 'MUL'],
-			[0, 24, 'AND'], [0, 25, 'OR'], [0, 10, 'MOVZ'],
-			[13, -1, 'BREAK'], [0, 0, 'NOP']] #nop is sll 0,0,0
-			#need a 40, 35, 33, 32, 43, 34, 43, 63, 0
-			#first five bits is normally opcode, however 2-5 will be used instead I guess...
+	instructions = [[100010, -1, 'J'], [100000, 001000, 'JR'], [100100, -1, 'BEQ'],
+			[100001, -1, 'BLTZ'], [100000, 100000, 'ADD'], [101000, -1, 'ADDI'],
+			[100000, 100010, 'SUB'], [101011, -1, 'SW'], [100011, -1, 'LW'],
+			[100000, 000000, 'SLL'], [100000, 000010, 'SRL'], [100000, 011000, 'MUL'],
+			[100000, 100100, 'AND'], [100000, 100101, 'OR'], [100000, 001010, 'MOVZ'],
+			[100000, 001101, 'BREAK'], [100000, 000000, 'NOP']] #nop is sll 0,0,0
+			#first six bits is normally opcode, however 1-5 will be used instead I guess...
 			
 	return instructions
 	
 def main():
+	instructions = []
 	opCode = []
 	rsBits = []
 	rtBits = []
 	rdBits = []
 	saBits = []
 	funcBits = []
+	#registers are initialized after the break.
+	registers = []
 	stdOPCodes = initializeOPCodes()
-	address = readFromFile(opCode, rsBits, rtBits, rdBits, saBits, funcBits)
-	print 'My Shit: \n\n\n'
+	address = readFromFile(opCode, rsBits, rtBits, rdBits, saBits, funcBits, instructions)
+	print 'My Stuff: \n\n\n'
 	for x in range(0, len(opCode)):
 		print 'OP: ' + str(opCode[x])
 		print 'RS: ' + str(rsBits[x])
@@ -110,6 +100,35 @@ def main():
 		print 'SA: ' + str(saBits[x])
 		print 'FUNC: ' + str(funcBits[x])
 		print '-------------------------------'
+
+def checkOPCode():
+	print "lol"
+	for x in range(0, len(opCode)):
+		if (#opcode starts with a 1):
+			#invalid opcode
+		else:
+			#opcode valid
+	RT = ((I<<17) & 0xFFFFFFFF) >> 27
+	rtBits.append(RT)
+	print RT
+	RD = ((I<<12) & 0xFFFFFFFF) >> 27
+	rdBits.append(RD)
+	print RD
+	SA = ((I<<7) & 0xFFFFFFFF) >> 27
+	saBits.append(SA)
+	print SA
+	FUNC = ((I<<1) & 0xFFFFFFFF) >> 27
+	funcBits.append(FUNC)
+	print FUNC
+
+def addi():
+	print 'Hello World!'
+
+def sll(count):
+	if (rs = 0 and rt = 0 and rd = 0):
+		#handle NOP
+	else:
+		#handle SLL
 
 if __name__ == "__main__":
 	main()

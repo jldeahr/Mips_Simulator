@@ -77,31 +77,6 @@ def initializeOPCodes():
 					#first six bits is normally opcode, however 1-5 will be used instead I guess...
 			
 	return instructions
-	
-def main():
-	instructions = []
-	opCode = []
-	rsBits = []
-	rtBits = []
-	rdBits = []
-	saBits = []
-	funcBits = []
-	#data is initialized after the break.
-	data = []
-	registers = []
-	stdOPCodes = initializeOPCodes()
-	address = readFromFile(opCode, rsBits, rtBits, rdBits, saBits, funcBits, instructions)
-	print 'My Stuff: \n\n\n'
-	for x in range(0, len(opCode)):
-		print 'OP: ' + str(opCode[x])
-		print 'RS: ' + str(rsBits[x])
-		print 'Address: ' + str(address[x])
-	validity = checkOPCode(opCode, stdOPCodes) #false if invalid, true if valid, makes for printing and reading easier later.
-	getData(data, validity, instructions)
-	for x in range(0, len(data)):
-		print '------------------'
-		#print 'Valid' + str(validity[x])
-		print 'Data: ' + str(data[x])
 
 def checkOPCode(opCode, stdOPCodes):
 	validity = []
@@ -120,20 +95,54 @@ def getData(data, validity, instructions):
 	startPt = len(validity) - 1
 	while (startPt >= 0):
 		if (validity[startPt]):
-			print 'Location1: ' + str(location)
+			#print 'Location1: ' + str(location)
 			location = startPt + 1
-			print 'Location2: ' + str(location)
+			#print 'Location2: ' + str(location)
 			startPt = -1
 		startPt = startPt - 1
+	returnPT = location
 	#now that we have the starting location for the data, we can decide the data values
 	while (location < len(validity)):
 		data.append(int(instructions[location]))
 		location = location + 1
+	return returnPT
 	
-def determineInstruction(opCode, stdOPCodes, validity):
+def determineInstruction(instruction, opCode, funcBits, stdOPCodes, validity, endPT):
 	#Here comes the long list of instruction options:
 	for x in range(0, len(opCode)):
-		print ''
+		#take care of validity first
+		if (!validity[x]):
+			invalid(instruction[x])
+		#handle ones dealing with func next
+		else if (opCode[x] == int('100000', 2)):
+			if (funcBits[x] == stdOPCodes[1][1]):
+				JR()
+			else if (funcBits[x] == stdOPCodes[4][1]):
+				ADD()
+			else if (funcBits[x] == stdOPCodes[6][1]):
+				SUB()
+			else if (funcBits[x] == stdOPCodes[9][1]):
+				SLL()
+			else if (funcBits[x] == stdOPCodes[10][1]):
+				SRL()
+			else if (funcBits[x] == stdOPCodes[11][1]):
+				MUL()
+			else if (funcBits[x] == stdOPCodes[12][1]):
+				AND()
+			else if (funcBits[x] == stdOPCodes[13][1]):
+				OR()
+			else if (funcBits[x] == stdOPCodes[14][1]):
+				MOVZ()
+			else if (funcBits[x] == stdOPCodes[15][1]):
+				BREAK()
+			else if (funcBits[x] == stdOPCodes[16][1]):
+				NOP()
+			#handle all other cases next
+		else:
+			if (opCode[x] == stdOPCodes[0][1]):
+				J()
+			else if (opCode[x] == stdOPCodes[2][1]):
+				BEQ()
 
 def addi():
 	print 'Hello World!'
@@ -157,6 +166,32 @@ def sll(count):
 	else:
 		print 'SLL'
 		#handle SLL
+		
+def main():
+	instructions = []
+	opCode = []
+	rsBits = []
+	rtBits = []
+	rdBits = []
+	saBits = []
+	funcBits = []
+	#data is initialized after the break.
+	data = []
+	registers = []
+	stdOPCodes = initializeOPCodes()
+	address = readFromFile(opCode, rsBits, rtBits, rdBits, saBits, funcBits, instructions)
+	print 'My Stuff: \n\n\n'
+	for x in range(0, len(opCode)):
+		print 'OP: ' + str(opCode[x])
+		print 'RS: ' + str(rsBits[x])
+		print 'Address: ' + str(address[x])
+	validity = checkOPCode(opCode, stdOPCodes) #false if invalid, true if valid, makes for printing and reading easier later.
+	instructionEnd = getData(data, validity, instructions)
+	#for x in range(0, len(data)):
+		#print '------------------'
+		#print 'Valid' + str(validity[x])
+		#print 'Data: ' + str(data[x])
+	#need to initialize funcBits!!!
 
 if __name__ == "__main__":
 	main()

@@ -68,13 +68,13 @@ def newReadFromFile(opCode, rsBits):
 		
 	
 def initializeOPCodes():
-	instructions = [[100010, -1, 'J'], [100000, 001000, 'JR'], [100100, -1, 'BEQ'],
-			[100001, -1, 'BLTZ'], [100000, 100000, 'ADD'], [101000, -1, 'ADDI'],
-			[100000, 100010, 'SUB'], [101011, -1, 'SW'], [100011, -1, 'LW'],
-			[100000, 000000, 'SLL'], [100000, 000010, 'SRL'], [100000, 011000, 'MUL'],
-			[100000, 100100, 'AND'], [100000, 100101, 'OR'], [100000, 001010, 'MOVZ'],
-			[100000, 001101, 'BREAK'], [100000, 000000, 'NOP']] #nop is sll 0,0,0
-			#first six bits is normally opcode, however 1-5 will be used instead I guess...
+	instructions = [[int('100010', 2), None, 'J'], [int('100000', 2), int('001000', 2), 'JR'], [int('100100', 2), None, 'BEQ'],
+					[int('100001', 2), None, 'BLTZ'], [int('100000', 2), int('100000', 2), 'ADD'], [int('101000', 2), None, 'ADDI'],
+					[int('100010', 2), int('100000', 2), 'SUB'], [int('101011', 2), None, 'SW'], [int('100011', 2), None, 'LW'],
+					[int('100000', 2), int('000000', 2), 'SLL'], [int('100000', 2), int('000010', 2), 'SRL'], [int('100000', 2), int('011000', 2), 'MUL'],
+					[int('100000', 2), int('100100', 2), 'AND'], [int('100000', 2), int('100101', 2), 'OR'], [int('100000', 2), int('001010', 2), 'MOVZ'],
+					[int('100000', 2), int('001101', 2), 'BREAK'], [int('100000', 2), int('000000', 2), 'NOP']] #nop is sll 0,0,0
+					#first six bits is normally opcode, however 1-5 will be used instead I guess...
 			
 	return instructions
 	

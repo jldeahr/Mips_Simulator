@@ -86,7 +86,8 @@ def main():
 	rdBits = []
 	saBits = []
 	funcBits = []
-	#registers are initialized after the break.
+	#data is initialized after the break.
+	data = []
 	registers = []
 	stdOPCodes = initializeOPCodes()
 	address = readFromFile(opCode, rsBits, rtBits, rdBits, saBits, funcBits, instructions)
@@ -95,19 +96,47 @@ def main():
 		print 'OP: ' + str(opCode[x])
 		print 'RS: ' + str(rsBits[x])
 		print 'Address: ' + str(address[x])
-		print 'RT: ' + str(rtBits[x])
-		print 'RD: ' + str(rdBits[x])
-		print 'SA: ' + str(saBits[x])
-		print 'FUNC: ' + str(funcBits[x])
-		print '-------------------------------'
+	validity = checkOPCode(opCode, stdOPCodes) #false if invalid, true if valid, makes for printing and reading easier later.
+	getData(data, validity, instructions)
+	for x in range(0, len(data)):
+		print '------------------'
+		#print 'Valid' + str(validity[x])
+		print 'Data: ' + str(data[x])
 
-def checkOPCode():
-	print "lol"
+def checkOPCode(opCode, stdOPCodes):
+	validity = []
+	valid = False
 	for x in range(0, len(opCode)):
-		if (#opcode starts with a 1):
-			#invalid opcode
-		else:
-			#opcode valid
+		valid = False
+		for y in range(0, len(stdOPCodes)):
+			if (opCode[x] == stdOPCodes[y][0]):
+				valid = True
+				y = len(stdOPCodes)
+		validity.append(valid)			   
+	return validity
+
+def getData(data, validity, instructions):
+	location = 0
+	startPt = len(validity) - 1
+	while (startPt >= 0):
+		if (validity[startPt]):
+			print 'Location1: ' + str(location)
+			location = startPt + 1
+			print 'Location2: ' + str(location)
+			startPt = -1
+		startPt = startPt - 1
+	#now that we have the starting location for the data, we can decide the data values
+	while (location < len(validity)):
+		data.append(int(instructions[location]))
+		location = location + 1
+	
+def determineInstruction(opCode, stdOPCodes, validity):
+	#Here comes the long list of instruction options:
+	for x in range(0, len(opCode)):
+		print ''
+
+def addi():
+	print 'Hello World!'
 	RT = ((I<<17) & 0xFFFFFFFF) >> 27
 	rtBits.append(RT)
 	print RT
@@ -121,13 +150,12 @@ def checkOPCode():
 	funcBits.append(FUNC)
 	print FUNC
 
-def addi():
-	print 'Hello World!'
-
 def sll(count):
-	if (rs = 0 and rt = 0 and rd = 0):
+	if (rs == 0 and rt == 0 and rd == 0):
+		print 'NOP'
 		#handle NOP
 	else:
+		print 'SLL'
 		#handle SLL
 
 if __name__ == "__main__":

@@ -57,7 +57,7 @@ def initializeOPCodes():
 					[int('100000', 2), int('000000', 2), 'SLL'], [int('100000', 2), int('000010', 2), 'SRL'], [int('100000', 2), int('011000', 2), 'MUL'],
 					[int('100000', 2), int('100100', 2), 'AND'], [int('100000', 2), int('100101', 2), 'OR'], [int('100000', 2), int('001010', 2), 'MOVZ'],
 					[int('100000', 2), int('001101', 2), 'BREAK'], [int('100000', 2), int('000000', 2), 'NOP']] #nop is sll 0,0,0
-					#first six bits is normally opcode, however 1-5 will be used instead I guess...
+					#first six bits is normally opcode, however 1-5 will be used instead
 			
 	return instructions
 
@@ -144,7 +144,7 @@ def ADD(ins, registers):
 	rs = ins[6:11]
 	rt = ins[11:16]
 	rd = ins[16:21]
-	op = 'add'
+	op = 'ADD'
 	
 	registers[rd] = registers[rs] + registers[rt]
 	
@@ -155,31 +155,34 @@ def ADDI(ins, registers):
 	rs = ins[6:11]
 	rt = ins[11:16]
 	imm = ins[16:]
+	op = 'ADDI'
 	
 	registers[rt] = registers[rs] + imm
 	
-	printDisADDI(ins, registers)
-	printSimADDI(ins, registers)
+	printDis(ins, registers, op)
+	printSim(ins, registers, op)
 	
 def SUB(ins, registers):
 	rd = ins[16:21]
 	rs = ins[6:11]
 	rt = ins[11:16]
+	op = 'SUB'
 	
 	registers[rd] = registers[rs] - registers[rt]
 	
-	printDisSUB(ins, registers)
-	printSimSUB(ins, registers)
+	printDis(ins, registers, op)
+	printSim(ins, registers, op)
 	
 def MUL(ins, registers):
 	rd = ins[16:21]
 	rs = ins[6:11]
 	rt = ins[11:16]
+	op = 'MUL'
 	
 	registers[rd] = registers[rs] * registers[rt]
 	
-	printDisMUL(ins, registers)
-	printSimMUL(ins, registers)
+	printDis(ins, registers, op)
+	printSim(ins, registers, op)
 	
 def MOVZ(ins, registers):
 	rd = ins[16:21]
@@ -232,6 +235,7 @@ def SW(ins, registers, data):
 	base = ins[6:11]
 	rt = ins[11:16]
 	offset = ins[16:]
+	op = 'SW'
 	
 	data[int(base) + int(offset)] = rt
 
@@ -309,6 +313,7 @@ def BREAK(ins, registers, addresses):
 	
 	return len(addresses)
 	
+#this function is not used, and is just storing some notes.	
 def addi():
 	print 'Hello World!'
 	RT = ((I<<17) & 0xFFFFFFFF) >> 27

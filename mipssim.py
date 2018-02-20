@@ -350,6 +350,19 @@ def initializeRegisters():
 		registers.append(0)
 		x = x + 1
 	return registers
+
+def printDis(ins, registers, op):
+	#print dis stuff that modifies registers from here
+	
+def printSim(ins, registers, op):
+	#print sim stuff that modifies registers from here
+	
+def printDisData(ins, registers, data, op):
+	#print dis stuff that modifies data from here
+	
+def printSimData(ins, registers, data, op):
+	#print sim stuff that modifies data from here
+	
 		
 def main():
 	instructions = []

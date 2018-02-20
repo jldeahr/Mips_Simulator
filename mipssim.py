@@ -148,8 +148,8 @@ def ADD(ins, registers):
 	
 	registers[rd] = registers[rs] + registers[rt]
 	
-	printDis(ins, registers, op)
-	printSim(ins, registers, op)
+	printDis(ins, registers, data, op)
+	printSim(ins, registers, data, op)
 	
 def ADDI(ins, registers):
 	rs = ins[6:11]
@@ -159,8 +159,8 @@ def ADDI(ins, registers):
 	
 	registers[rt] = registers[rs] + imm
 	
-	printDis(ins, registers, op)
-	printSim(ins, registers, op)
+	printDis(ins, registers, data, op)
+	printSim(ins, registers, data, op)
 	
 def SUB(ins, registers):
 	rd = ins[16:21]
@@ -170,8 +170,8 @@ def SUB(ins, registers):
 	
 	registers[rd] = registers[rs] - registers[rt]
 	
-	printDis(ins, registers, op)
-	printSim(ins, registers, op)
+	printDis(ins, registers, data, op)
+	printSim(ins, registers, data, op)
 	
 def MUL(ins, registers):
 	rd = ins[16:21]
@@ -181,8 +181,8 @@ def MUL(ins, registers):
 	
 	registers[rd] = registers[rs] * registers[rt]
 	
-	printDis(ins, registers, op)
-	printSim(ins, registers, op)
+	printDis(ins, registers, data, op)
+	printSim(ins, registers, data, op)
 	
 def MOVZ(ins, registers):
 	rd = ins[16:21]
@@ -193,15 +193,15 @@ def MOVZ(ins, registers):
 	if (int(rt) == 0):
 		registers[rd] = registers[rs]
 		
-	printDis(ins, registers, op)
-	printSim(ins, registers, op)
+	printDis(ins, registers, data, op)
+	printSim(ins, registers, data, op)
 	
 def J(ins, registers, addresses):
 	addr = ins[6:]
 	op = 'J'
 	
-	printDis(ins, registers, op)
-	printSim(ins, registers, op)
+	printDis(ins, registers, data, op)
+	printSim(ins, registers, data, op)
 	
 	for x in range(0, len(addresses)):
 		if (int(addr) == addresses[x]):
@@ -212,8 +212,8 @@ def JR(ins, registers, addresses):
 	addr = registers[rs]
 	op = 'JR'
 	
-	printDis(ins, registers, op)
-	printSim(ins, registers, op)
+	printDis(ins, registers, data, op)
+	printSim(ins, registers, data, op)
 	
 	for x in range(0, len(addresses)):
 		if (int(addr) == addresses[x]):
@@ -224,8 +224,8 @@ def BEQ(ins, registers):
 	rt = ins[11:16]
 	op = 'BEQ'
 	
-	printDis(ins, registers, op)
-	printSim(ins, registers, op)
+	printDis(ins, registers, data, op)
+	printSim(ins, registers, data, op)
 	
 	if (rs == rt):
 		#come back to later when I understand better
@@ -239,8 +239,8 @@ def SW(ins, registers, data):
 	
 	data[int(base) + int(offset)] = rt
 
-	printDisData(ins, registers, data, op)
-	printSimData(ins, registers, data, op)
+	printDis(ins, registers, data, op)
+	printSim(ins, registers, data, op)
 	
 def LW(ins, registers, data):
 	base = ins[6:11]
@@ -250,8 +250,8 @@ def LW(ins, registers, data):
 	
 	registers[rt] = data[base + offset]
 	
-	printDisData(ins, registers, data, op)
-	printSimData(ins, registers, data, op)
+	printDis(ins, registers, data, op)
+	printSim(ins, registers, data, op)
 	
 def SLL(ins, registers):
 	rs = ins[6:11]
@@ -262,15 +262,13 @@ def SLL(ins, registers):
 	if (int(rs) == 0 and int(rd) == 0 and int(rt) == 0):
 		#NOP handling...
 		op = 'NOP'
-		printDis(ins, registers, op)
-		printSim(ins, registers, op)
 		
 	else:
 		op = 'SLL'
 		registers[rd] = (registers[rt] << int(shamt))
 	
-		printDis(ins, registers, op)
-		printSim(ins, registers, op)
+	printDis(ins, registers, data, op)
+	printSim(ins, registers, data, op)
 	
 def SRL(ins, registers):
 	rd = ins[16:21]
@@ -280,8 +278,8 @@ def SRL(ins, registers):
 	
 	registers[rd] = (registers[rt] >> int(shamt))
 	
-	printDis(ins, registers, op)
-	printSim(ins, registers, op)
+	printDis(ins, registers, data, op)
+	printSim(ins, registers, data, op)
 	
 def AND(ins, registers):
 	rs = ins[6:11]
@@ -291,8 +289,8 @@ def AND(ins, registers):
 	
 	registers[rd] = (registers[rs] & registers[rt])
 	
-	printDis(ins, registers, op)
-	printSim(ins, registers, op)
+	printDis(ins, registers, data, op)
+	printSim(ins, registers, data, op)
 	
 def OR(ins, registers):
 	rs = ins[6:11]
@@ -302,14 +300,14 @@ def OR(ins, registers):
 	
 	registers[rd] = (registers[rs] | registers[rt])
 	
-	printDis(ins, registers, op)
-	printSim(ins, registers, op)
+	printDis(ins, registers, data, op)
+	printSim(ins, registers, data, op)
 	
 def BREAK(ins, registers, addresses):
 	op = 'BREAK'
 	
-	printDis(ins, registers, op)
-	printSim(ins, registers, op)
+	printDis(ins, registers, data, op)
+	printSim(ins, registers, data, op)
 	
 	return len(addresses)
 	
@@ -343,19 +341,13 @@ def initializeRegisters():
 		x = x + 1
 	return registers
 
-def printDis(ins, registers, op, address):
+def printDis(ins, registers, op, data, address):
 	#print dis stuff that modifies registers from here
 	
-def printSim(ins, registers, op, address):
+def printSim(ins, registers, op, data, address):
 	#print sim stuff that modifies registers from here
-	
-	
-def printDisData(ins, registers, data, op, address):
-	#print dis stuff that modifies data from here
-	
-def printSimData(ins, registers, data, op, address):
-	#print sim stuff that modifies data from here
-	
+	simOut.write(
+		
 		
 def main():
 	#global file io stuff:

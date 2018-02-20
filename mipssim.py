@@ -329,14 +329,6 @@ def addi():
 	funcBits.append(FUNC)
 	print FUNC
 
-def sll(count):
-	if (rs == 0 and rt == 0 and rd == 0):
-		print 'NOP'
-		#handle NOP
-	else:
-		print 'SLL'
-		#handle SLL
-		
 def printDis():
 	print ''
 	
@@ -351,20 +343,25 @@ def initializeRegisters():
 		x = x + 1
 	return registers
 
-def printDis(ins, registers, op):
+def printDis(ins, registers, op, address):
 	#print dis stuff that modifies registers from here
 	
-def printSim(ins, registers, op):
+def printSim(ins, registers, op, address):
 	#print sim stuff that modifies registers from here
 	
-def printDisData(ins, registers, data, op):
+	
+def printDisData(ins, registers, data, op, address):
 	#print dis stuff that modifies data from here
 	
-def printSimData(ins, registers, data, op):
+def printSimData(ins, registers, data, op, address):
 	#print sim stuff that modifies data from here
 	
 		
 def main():
+	#global file io stuff:
+	global disOut = open(sys.argv[2] + '_dis.txt', w)
+	global simOut = open(sys.argv[2] + '_sim.txt', w)
+	
 	instructions = []
 	opCode = []
 	rsBits = []

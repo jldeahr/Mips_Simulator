@@ -119,7 +119,7 @@ def determineInstruction(instruction, opCode, funcBits, stdOPCodes, validity, en
 			else if (funcBits[x] == stdOPCodes[15][1]):
 				BREAK()
 			else if (funcBits[x] == stdOPCodes[16][1]):
-				SLL(instruction[x], registers)
+				x = SLL(instruction[x], registers, addresses)
 			#handle all other cases next
 		else:
 			if (opCode[x] == stdOPCodes[0][1]):
@@ -144,11 +144,12 @@ def ADD(ins, registers):
 	rs = ins[6:11]
 	rt = ins[11:16]
 	rd = ins[16:21]
+	op = 'add'
 	
 	registers[rd] = registers[rs] + registers[rt]
 	
-	printDisADD(ins, registers)
-	printSimADD(ins, registers)
+	printDis(ins, registers, op)
+	printSim(ins, registers, op)
 	
 def ADDI(ins, registers):
 	rs = ins[6:11]
@@ -184,18 +185,20 @@ def MOVZ(ins, registers):
 	rd = ins[16:21]
 	rs = ins[6:11]
 	rt = ins[11:16]
+	op = 'MOVZ'
 	
 	if (int(rt) == 0):
 		registers[rd] = registers[rs]
 		
-	printDisMOVZ(ins, registers)
-	printSimMOVZ(ins, registers)
+	printDis(ins, registers, op)
+	printSim(ins, registers, op)
 	
 def J(ins, registers, addresses):
 	addr = ins[6:]
+	op = 'J'
 	
-	printDisJ(ins, registers)
-	printSimJ(ins, registers)
+	printDis(ins, registers, op)
+	printSim(ins, registers, op)
 	
 	for x in range(0, len(addresses)):
 		if (int(addr) == addresses[x]):
@@ -204,9 +207,10 @@ def J(ins, registers, addresses):
 def JR(ins, registers, addresses):
 	rs = ins[6:11]
 	addr = registers[rs]
+	op = 'JR'
 	
-	printDisJR(ins, registers)
-	printSimJR(ins, registers)
+	printDis(ins, registers, op)
+	printSim(ins, registers, op)
 	
 	for x in range(0, len(addresses)):
 		if (int(addr) == addresses[x]):
@@ -215,10 +219,15 @@ def JR(ins, registers, addresses):
 def BEQ(ins, registers):
 	rs = ins[6:11]
 	rt = ins[11:16]
+	op = 'BEQ'
+	
+	printDis(ins, registers, op)
+	printSim(ins, registers, op)
 	
 	if (rs == rt):
 		#come back to later when I understand better
-		
+	
+	
 def SW(ins, registers, data):
 	base = ins[6:11]
 	rt = ins[11:16]
@@ -226,18 +235,19 @@ def SW(ins, registers, data):
 	
 	data[int(base) + int(offset)] = rt
 
-	printDisSW(ins, registers, data)
-	printSimSW(ins, registers, data)
+	printDisData(ins, registers, data, op)
+	printSimData(ins, registers, data, op)
 	
 def LW(ins, registers, data):
 	base = ins[6:11]
 	rt = ins[11:16]
 	offset = ins[16:]
+	op = 'LW'
 	
 	registers[rt] = data[base + offset]
 	
-	printDisSW(ins, registers, data)
-	printSimSW(ins, registers, data)
+	printDisData(ins, registers, data, op)
+	printSimData(ins, registers, data, op)
 	
 def SLL(ins, registers):
 	rs = ins[6:11]
@@ -247,47 +257,57 @@ def SLL(ins, registers):
 	
 	if (int(rs) == 0 and int(rd) == 0 and int(rt) == 0):
 		#NOP handling...
-		printDisNOP(ins, registers)
-		printSimNOP(ins, registers)
+		op = 'NOP'
+		printDis(ins, registers, op)
+		printSim(ins, registers, op)
+		
 	else:
+		op = 'SLL'
 		registers[rd] = (registers[rt] << int(shamt))
 	
-		printDisSLL(ins, registers)
-		printSimSLL(ins, registers)
+		printDis(ins, registers, op)
+		printSim(ins, registers, op)
 	
 def SRL(ins, registers):
 	rd = ins[16:21]
 	rt = ins[11:16]
 	shamt = ins[21:26]
+	op = 'SRL'
 	
 	registers[rd] = (registers[rt] >> int(shamt))
 	
-	printDisSRL(ins, registers)
-	printSimSRL(ins, registers)
+	printDis(ins, registers, op)
+	printSim(ins, registers, op)
 	
 def AND(ins, registers):
 	rs = ins[6:11]
 	rd = ins[16:21]
 	rt = ins[11:16]
+	op = 'AND'
 	
 	registers[rd] = (registers[rs] & registers[rt])
 	
-	printDisAND(ins, registers)
-	printSimAND(ins, registers)
+	printDis(ins, registers, op)
+	printSim(ins, registers, op)
 	
 def OR(ins, registers):
 	rs = ins[6:11]
 	rd = ins[16:21]
 	rt = ins[11:16]
+	op = 'OR'
 	
 	registers[rd] = (registers[rs] | registers[rt])
 	
-	printDisOR(ins, registers)
-	printSimOR(ins, registers)
+	printDis(ins, registers, op)
+	printSim(ins, registers, op)
 	
-def BREAK(ins, registers):
-	printDisBREAK(ins, registers)
-	printSimBREAK(ins, registers)
+def BREAK(ins, registers, addresses):
+	op = 'BREAK'
+	
+	printDis(ins, registers, op)
+	printSim(ins, registers, op)
+	
+	return len(addresses)
 	
 def addi():
 	print 'Hello World!'

@@ -20,7 +20,7 @@ def imm16BitUnsignedTo32BitSignedConverter( num ):
 		num = num * -1
 	return num
 
-def readFromFile(opCode, rsBits, rtBits, rdBits, saBits, funcBits, instructions):
+def readFromFile(opCode, rsBits, instructions):
 	# how to read binary file and get ints
 	inFile = open( sys.argv[1], 'rb' )
 	# get the file length
@@ -46,26 +46,9 @@ def readFromFile(opCode, rsBits, rtBits, rdBits, saBits, funcBits, instructions)
 		RS = ((I<<6) & 0xFFFFFFFF) >> 27
 		print RS
 		rsBits.append(RS)
-		
 		print '----'
 	inFile.close()
 	return address
-
-def newReadFromFile(opCode, rsBits):
-	inFile = open(sys.argv[1], 'rb')
-	inFileLen = os.stat(sys.argv[1])[6]
-	inFileWords = inFileLen / 4
-	instructions = []
-	address = []
-	count = 0
-	for i in range(inFileWords):
-		instructions.append(struct.unpack('>I', inFile.read(4))[0])
-		address.append(96 + (i * 4))
-		I = instructions[len(instructions) - 1]
-		IMM = ((I << 16) & 0xFFFFFFFF ) >> 16
-		IMM = imm16BitUnsignedTo32BitSignedConverter(IMM)
-		print bin(I)[2:].zfill(4)
-		
 	
 def initializeOPCodes():
 	instructions = [[int('100010', 2), None, 'J'], [int('100000', 2), int('001000', 2), 'JR'], [int('100100', 2), None, 'BEQ'],
@@ -107,43 +90,205 @@ def getData(data, validity, instructions):
 		location = location + 1
 	return returnPT
 	
-def determineInstruction(instruction, opCode, funcBits, stdOPCodes, validity, endPT):
+def determineInstruction(instruction, opCode, funcBits, stdOPCodes, validity, endPT, data, registers, addresses):
 	#Here comes the long list of instruction options:
-	for x in range(0, len(opCode)):
+	for x in range(0, endPT):
 		#take care of validity first
 		if (!validity[x]):
 			invalid(instruction[x])
 		#handle ones dealing with func next
 		else if (opCode[x] == int('100000', 2)):
 			if (funcBits[x] == stdOPCodes[1][1]):
-				JR()
+				x = JR(instruction[x], registers, addresses)
 			else if (funcBits[x] == stdOPCodes[4][1]):
-				ADD()
+				ADD(instruction[x], registers)
 			else if (funcBits[x] == stdOPCodes[6][1]):
-				SUB()
+				SUB(instruction[x], registers)
 			else if (funcBits[x] == stdOPCodes[9][1]):
-				SLL()
+				SLL(instruction[x], registers)
 			else if (funcBits[x] == stdOPCodes[10][1]):
-				SRL()
+				SRL(instruction[x], registers)
 			else if (funcBits[x] == stdOPCodes[11][1]):
-				MUL()
+				MUL(instruction[x], registers)
 			else if (funcBits[x] == stdOPCodes[12][1]):
-				AND()
+				AND(instruction[x], registers)
 			else if (funcBits[x] == stdOPCodes[13][1]):
-				OR()
+				OR(instruction[x], registers)
 			else if (funcBits[x] == stdOPCodes[14][1]):
-				MOVZ()
+				MOVZ(instruction[x], registers)
 			else if (funcBits[x] == stdOPCodes[15][1]):
 				BREAK()
 			else if (funcBits[x] == stdOPCodes[16][1]):
-				NOP()
+				SLL(instruction[x], registers)
 			#handle all other cases next
 		else:
 			if (opCode[x] == stdOPCodes[0][1]):
-				J()
+				x = J(instruction[x], registers, addresses)
 			else if (opCode[x] == stdOPCodes[2][1]):
 				BEQ()
+			else if (opCode[x] == stdOPCodes[3][1]):
+				BLTZ()
+			else if (opCode[x] == stdOPCodes[5][1]):
+				ADDI(instruction[x], registers)
+			else if (opCode[x] == stdOPCodes[7][1]):
+				SW(instruction[x], registers, data)
+			else if (opCode[x] == stdOPCodes[8][1]):
+				LW(instruction[x], registers, data)
+				
+def output():
+	print ''
+	
+def ADD(ins, registers):
+	#ins is the full instruction.
+	#rs is at 25-21, rt is at 20-16, rd is at 15-11
+	rs = ins[6:11]
+	rt = ins[11:16]
+	rd = ins[16:21]
+	
+	registers[rd] = registers[rs] + registers[rt]
+	
+	printDisADD(ins, registers)
+	printSimADD(ins, registers)
+	
+def ADDI(ins, registers):
+	rs = ins[6:11]
+	rt = ins[11:16]
+	imm = ins[16:]
+	
+	registers[rt] = registers[rs] + imm
+	
+	printDisADDI(ins, registers)
+	printSimADDI(ins, registers)
+	
+def SUB(ins, registers):
+	rd = ins[16:21]
+	rs = ins[6:11]
+	rt = ins[11:16]
+	
+	registers[rd] = registers[rs] - registers[rt]
+	
+	printDisSUB(ins, registers)
+	printSimSUB(ins, registers)
+	
+def MUL(ins, registers):
+	rd = ins[16:21]
+	rs = ins[6:11]
+	rt = ins[11:16]
+	
+	registers[rd] = registers[rs] * registers[rt]
+	
+	printDisMUL(ins, registers)
+	printSimMUL(ins, registers)
+	
+def MOVZ(ins, registers):
+	rd = ins[16:21]
+	rs = ins[6:11]
+	rt = ins[11:16]
+	
+	if (int(rt) == 0):
+		registers[rd] = registers[rs]
+		
+	printDisMOVZ(ins, registers)
+	printSimMOVZ(ins, registers)
+	
+def J(ins, registers, addresses):
+	addr = ins[6:]
+	
+	printDisJ(ins, registers)
+	printSimJ(ins, registers)
+	
+	for x in range(0, len(addresses)):
+		if (int(addr) == addresses[x]):
+			return x
 
+def JR(ins, registers, addresses):
+	rs = ins[6:11]
+	addr = registers[rs]
+	
+	printDisJR(ins, registers)
+	printSimJR(ins, registers)
+	
+	for x in range(0, len(addresses)):
+		if (int(addr) == addresses[x]):
+			return x
+		
+def BEQ(ins, registers):
+	rs = ins[6:11]
+	rt = ins[11:16]
+	
+	if (rs == rt):
+		#come back to later when I understand better
+		
+def SW(ins, registers, data):
+	base = ins[6:11]
+	rt = ins[11:16]
+	offset = ins[16:]
+	
+	data[int(base) + int(offset)] = rt
+
+	printDisSW(ins, registers, data)
+	printSimSW(ins, registers, data)
+	
+def LW(ins, registers, data):
+	base = ins[6:11]
+	rt = ins[11:16]
+	offset = ins[16:]
+	
+	registers[rt] = data[base + offset]
+	
+	printDisSW(ins, registers, data)
+	printSimSW(ins, registers, data)
+	
+def SLL(ins, registers):
+	rs = ins[6:11]
+	rd = ins[16:21]
+	rt = ins[11:16]
+	shamt = ins[21:26]
+	
+	if (int(rs) == 0 and int(rd) == 0 and int(rt) == 0):
+		#NOP handling...
+		printDisNOP(ins, registers)
+		printSimNOP(ins, registers)
+	else:
+		registers[rd] = (registers[rt] << int(shamt))
+	
+		printDisSLL(ins, registers)
+		printSimSLL(ins, registers)
+	
+def SRL(ins, registers):
+	rd = ins[16:21]
+	rt = ins[11:16]
+	shamt = ins[21:26]
+	
+	registers[rd] = (registers[rt] >> int(shamt))
+	
+	printDisSRL(ins, registers)
+	printSimSRL(ins, registers)
+	
+def AND(ins, registers):
+	rs = ins[6:11]
+	rd = ins[16:21]
+	rt = ins[11:16]
+	
+	registers[rd] = (registers[rs] & registers[rt])
+	
+	printDisAND(ins, registers)
+	printSimAND(ins, registers)
+	
+def OR(ins, registers):
+	rs = ins[6:11]
+	rd = ins[16:21]
+	rt = ins[11:16]
+	
+	registers[rd] = (registers[rs] | registers[rt])
+	
+	printDisOR(ins, registers)
+	printSimOR(ins, registers)
+	
+def BREAK(ins, registers):
+	printDisBREAK(ins, registers)
+	printSimBREAK(ins, registers)
+	
 def addi():
 	print 'Hello World!'
 	RT = ((I<<17) & 0xFFFFFFFF) >> 27
@@ -167,19 +312,30 @@ def sll(count):
 		print 'SLL'
 		#handle SLL
 		
+def printDis():
+	print ''
+	
+def printSim():
+	print ''
+	
+def initializeRegisters():
+	registers = []
+	x = 0
+	while (x < 32):
+		registers.append(0)
+		x = x + 1
+	return registers
+		
 def main():
 	instructions = []
 	opCode = []
 	rsBits = []
-	rtBits = []
-	rdBits = []
-	saBits = []
 	funcBits = []
 	#data is initialized after the break.
 	data = []
-	registers = []
+	registers = initializeRegisters()
 	stdOPCodes = initializeOPCodes()
-	address = readFromFile(opCode, rsBits, rtBits, rdBits, saBits, funcBits, instructions)
+	addresses = readFromFile(opCode, rsBits, instructions)
 	print 'My Stuff: \n\n\n'
 	for x in range(0, len(opCode)):
 		print 'OP: ' + str(opCode[x])
@@ -191,7 +347,7 @@ def main():
 		#print '------------------'
 		#print 'Valid' + str(validity[x])
 		#print 'Data: ' + str(data[x])
-	#need to initialize funcBits!!!
+	#need to initialize funcBits!!! (only for the instructions with func, else it should be null)
 
 if __name__ == "__main__":
 	main()

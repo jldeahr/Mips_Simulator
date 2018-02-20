@@ -67,8 +67,7 @@ def initializeOPCodes():
 			
 	return instructions
 
-def initializeFunctions(instructions):
-	func = []
+def initializeFunctions(instructions, func):
 	for x in range(0, len(instructions)):
 		func.append(instructions[x][26:])
 
@@ -83,7 +82,6 @@ def checkOPCode(opCode, stdOPCodes):
 				y = len(stdOPCodes)
 		validity.append(valid)			   
 	return validity
-
 def getData(data, validity, instructions):
 	location = 0
 	startPt = len(validity) - 1
@@ -387,14 +385,12 @@ def main():
 	instructions = []
 	opCode = []
 	rsBits = []
-	funcBits = initializeFunctions(instructions)
+	func = []
+	initializeFunctions(instructions, func)
 	#data is initialized after the break.
 	data = []
 	registers = []
 	initializeRegisters(registers)
-	print "Registers:"
-	for x in range(0, len(registers)):
-		print registers[x]
 	stdOPCodes = initializeOPCodes()
 	addresses = readFromFile(opCode, rsBits, instructions)
 	validity = checkOPCode(opCode, stdOPCodes) #false if invalid, true if valid, makes for printing and reading easier later.

@@ -27,7 +27,7 @@ def imm16BitUnsignedTo32BitSignedConverter( num ):
 		num = num * -1
 	return num
 
-def readFromFile(opCode, rsBits, instructions):
+def readFromFile(opCode, rsBits, instructions, funcBits):
 	# how to read binary file and get ints
 	inFile = open( sys.argv[1], 'rb' )
 	# get the file length
@@ -51,6 +51,8 @@ def readFromFile(opCode, rsBits, instructions):
 		#print OP
 		# get the RS bits
 		RS = ((I<<6) & 0xFFFFFFFF) >> 27
+		func = ((I<<0) & 0xFFFFFFFF) >> 5
+		funcBits.append(func)
 		#print RS
 		rsBits.append(RS)
 		#print '----'
@@ -334,11 +336,13 @@ def BREAK(ins, registers, address, data, out1, out2, endPt):
 		
 	
 	
+	
 def initializeRegisters(registers):
 	x = 0
 	while (x < 32):
 		registers.append(0)
 		x = x + 1
+		
 		
 		
 def printDis(ins, registers, op, data, address, disOut, endPt):
@@ -390,16 +394,35 @@ def main():
 	instructions = []
 	opCode = []
 	rsBits = []
+	funcBits = []
 	#data is initialized after the break.
 	data = []
 	registers = []
 	initializeRegisters(registers)
 	stdOPCodes = initializeOPCodes()
-	addresses = readFromFile(opCode, rsBits, instructions)
+	addresses = readFromFile(opCode, rsBits, instructions, funcBits)
 	validity = checkOPCode(opCode, stdOPCodes) #false if invalid, true if valid, makes for printing and reading easier later.
 	instructionEnd = getData(data, validity, instructions)
-	initializeFunctions(instructions, instructionEnd)
+	checkWhatsUp(instructions, opCode, rsBits, funcBits, data, registers, addresses, validity, stdOPCodes)
 	determineInstruction(instructions, opCode, funcBits, stdOPCodes, validity, instructionEnd, data, registers, addresses, disOut, simOut)
+	
+def checkWhatsUp(instructions, opCode, rsBits, funcBits, data, registers, addresses, validity, stdOPCodes):
+	for x in range(0, len(instructions)):
+		print "ins: " + str(bin(instructions[x]))
+		print "op: " + str(opCode[x])
+		print "rs: " + str(rsBits[x])
+		print "func: " + str(funcBits[x])
+		print "addresses: " + str(addresses[x])
+		print "valid: " + str(validity[x])
+	
+	for x in range(0, len(data)):
+		print "data: " + str(data[x])
+		
+	for x in range(0, len(registers)):
+		print "reg: " + str(registers[x])
+	
+	for x in range(0, len(stdOPCodes)):
+		print "sops: " + str(stdOPCodes[x])
 
 if __name__ == "__main__":
 	main()

@@ -35,7 +35,7 @@ data:
 156:	1	2	3	4	
 
 ====================
-cycle:1 112	ADD	R3, R2, R1
+cycle:1 112	ADD	R3, R1, R2
 
 registers:
 r00:	0	100	24	124	0	0	0	0

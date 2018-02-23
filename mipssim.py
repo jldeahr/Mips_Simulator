@@ -112,7 +112,7 @@ def determineInstruction(instruction, opCode, funcBits, stdOPCodes, validity, en
 	for x in range(0, endPT):
 		#take care of validity first
 		if (validity[x] != True):
-			printInvalid(instruction[x])
+			printInvalid(instruction[x], addresses[x], out1)
 		#handle ones dealing with func next
 		elif (opCode[x] == int('100000', 2)):
 			if (funcBits[x] == stdOPCodes[1][1]):
@@ -132,7 +132,7 @@ def determineInstruction(instruction, opCode, funcBits, stdOPCodes, validity, en
 			elif (funcBits[x] == stdOPCodes[14][1]):
 				MOVZ(instruction[x], registers, data, addresses[x], out1, out2, endPT)
 			elif (funcBits[x] == stdOPCodes[15][1]):
-				BREAK(instruction[x], registers, addresses[x], data, out1, out2, endPT)
+				BREAK(instruction[x], registers, addresses[x], data, out1, out2, endPT, addresses, x, instruction)
 			elif (funcBits[x] == stdOPCodes[16][1]):
 				x = SLL(instruction[x], registers, addresses, data)
 			cycle = cycle + 1
@@ -262,8 +262,12 @@ def BLTZ(ins, registers, addresses, address, data, out1, out2, endPt):
 	
 def SW(ins, registers, data, address, out1, out2, endPt):
 	base = int(str(bin(ins))[8:13],2)
+	print base
 	rt = int(str(bin(ins))[13:18],2)
 	offset = int(str(bin(ins))[18:],2)
+	location = int((str(bin(base)[2:]) + str(bin(offset)[2:])),2)
+	print offset
+	print location
 	op = 'SW'
 	
 	data[int(base) + int(offset)] = rt
@@ -332,11 +336,12 @@ def OR(ins, registers, data, address, out1, out2, endPt):
 	printDis(ins, registers, op, data, address, out1, endPt)
 	printSim(ins, registers, op, data, address, out2, endPt)
 	
-def BREAK(ins, registers, address, data, out1, out2, endPt):
+def BREAK(ins, registers, address, data, out1, out2, endPt, addresses, x, instructions):
 	op = 'BREAK'
 	
 	printDis(ins, registers, op, data, address, out1, endPt)
 	printSim(ins, registers, op, data, address, out2, endPt)
+	printDisData(instructions, addresses, data, x, out1)
 		
 	
 def initializeRegisters(registers):
@@ -346,8 +351,50 @@ def initializeRegisters(registers):
 		x = x + 1
 		
 def printDis(ins, registers, op, data, address, disOut, endPt):
-	#print dis stuff that modifies registers from here
-	print ''
+	#print dis stuff
+	if (op == 'J'):
+		disOut.write(str(bin(ins))[2:3] + ' ' + str(bin(ins))[3:8] + ' ' + str(bin(ins))[8:13] + ' ' + str(bin(ins))[13:18] + ' ' + str(bin(ins))[18:23] + ' ' + str(bin(ins))[23:28] + ' ' + str(bin(ins))[28:] + '  ' + str(address) + '\t' + str(op) + '\t#' + str((int(bin(ins)[8:],2)) * 4) + '\n')
+	elif (op == 'ADDI'):
+		disOut.write(str(bin(ins))[2:3] + ' ' + str(bin(ins))[3:8] + ' ' + str(bin(ins))[8:13] + ' ' + str(bin(ins))[13:18] + ' ' + str(bin(ins))[18:23] + ' ' + str(bin(ins))[23:28] + ' ' + str(bin(ins))[28:] + '  ' + str(address) + '\t' + str(op) + '\tR' + str(int(str(bin(ins))[13:18],2)) + ', R' + str(int(str(bin(ins))[8:13],2)) + ', #' + str(int(str(bin(ins))[18:],2)) + '\n')
+	elif (op == 'ADD'):
+		disOut.write(str(bin(ins))[2:3] + ' ' + str(bin(ins))[3:8] + ' ' + str(bin(ins))[8:13] + ' ' + str(bin(ins))[13:18] + ' ' + str(bin(ins))[18:23] + ' ' + str(bin(ins))[23:28] + ' ' + str(bin(ins))[28:] + '  ' + str(address) + '\t' + str(op) + '\tR' + str(int(str(bin(ins))[18:23],2)) + ', R' + str(int(str(bin(ins))[8:13],2)) + ', R' + str(int(str(bin(ins))[13:18],2)) + '\n')
+	elif (op == 'JR'):
+		disOut.write(str(bin(ins))[2:3] + ' ' + str(bin(ins))[3:8] + ' ' + str(bin(ins))[8:13] + ' ' + str(bin(ins))[13:18] + ' ' + str(bin(ins))[18:23] + ' ' + str(bin(ins))[23:28] + ' ' + str(bin(ins))[28:] + '  ' + str(address) + '\t' + str(op) + '\tR' + str(int(str(bin(ins))[8:13],2)) + '\n')
+	elif (op == 'SUB'):
+		disOut.write(str(bin(ins))[2:3] + ' ' + str(bin(ins))[3:8] + ' ' + str(bin(ins))[8:13] + ' ' + str(bin(ins))[13:18] + ' ' + str(bin(ins))[18:23] + ' ' + str(bin(ins))[23:28] + ' ' + str(bin(ins))[28:] + '  ' + str(address) + '\t' + str(op) + '\tR' + str(int(str(bin(ins))[18:23],2)) + ', R' + str(int(str(bin(ins))[8:13],2)) + ', R' + str(int(str(bin(ins))[13:18],2)) + '\n')
+	elif (op == 'SLL'):
+		disOut.write(str(bin(ins))[2:3] + ' ' + str(bin(ins))[3:8] + ' ' + str(bin(ins))[8:13] + ' ' + str(bin(ins))[13:18] + ' ' + str(bin(ins))[18:23] + ' ' + str(bin(ins))[23:28] + ' ' + str(bin(ins))[28:] + '  ' + str(address) + '\t' + str(op) + '\tR' + str(int(str(bin(ins))[18:23],2)) + ', R' + str(int(str(bin(ins))[13:18],2)) + ', #' + str(int(str(bin(ins))[23:28],2)) + '\n')
+	elif (op == 'SRL'):
+		disOut.write(str(bin(ins))[2:3] + ' ' + str(bin(ins))[3:8] + ' ' + str(bin(ins))[8:13] + ' ' + str(bin(ins))[13:18] + ' ' + str(bin(ins))[18:23] + ' ' + str(bin(ins))[23:28] + ' ' + str(bin(ins))[28:] + '  ' + str(address) + '\t' + str(op) + '\tR' + str(int(str(bin(ins))[18:23],2)) + ', R' + str(int(str(bin(ins))[13:18],2)) + ', #' + str(int(str(bin(ins))[23:28],2)) + '\n')
+	elif (op == 'MUL'):
+		disOut.write(str(bin(ins))[2:3] + ' ' + str(bin(ins))[3:8] + ' ' + str(bin(ins))[8:13] + ' ' + str(bin(ins))[13:18] + ' ' + str(bin(ins))[18:23] + ' ' + str(bin(ins))[23:28] + ' ' + str(bin(ins))[28:] + '  ' + str(address) + '\t' + str(op) + '\tR' + str(int(str(bin(ins))[18:23],2)) + ', R' + str(int(str(bin(ins))[23:34],2)) + ', R' + str(int(str(bin(ins))[13:18],2)) + '\n')
+	elif (op == 'MOVZ'):
+		disOut.write(str(bin(ins))[2:3] + ' ' + str(bin(ins))[3:8] + ' ' + str(bin(ins))[8:13] + ' ' + str(bin(ins))[13:18] + ' ' + str(bin(ins))[18:23] + ' ' + str(bin(ins))[23:28] + ' ' + str(bin(ins))[28:] + '  ' + str(address) + '\t' + str(op) + '\tR' + str(int(str(bin(ins))[18:23],2)) + ', R' + str(int(str(bin(ins))[8:13],2)) + ', R' + str(int(str(bin(ins))[13:18],2)) + '\n')
+	elif (op == 'OR'):
+		disOut.write(str(bin(ins))[2:3] + ' ' + str(bin(ins))[3:8] + ' ' + str(bin(ins))[8:13] + ' ' + str(bin(ins))[13:18] + ' ' + str(bin(ins))[18:23] + ' ' + str(bin(ins))[23:28] + ' ' + str(bin(ins))[28:] + '  ' + str(address) + '\t' + str(op) + '\tR' + str(int(str(bin(ins))[18:23],2)) + ', R' + str(int(str(bin(ins))[8:13],2)) + ', R' + str(int(str(bin(ins))[13:18],2)) + '\n')
+	elif (op == 'AND'):
+		disOut.write(str(bin(ins))[2:3] + ' ' + str(bin(ins))[3:8] + ' ' + str(bin(ins))[8:13] + ' ' + str(bin(ins))[13:18] + ' ' + str(bin(ins))[18:23] + ' ' + str(bin(ins))[23:28] + ' ' + str(bin(ins))[28:] + '  ' + str(address) + '\t' + str(op) + '\tR' + str(int(str(bin(ins))[18:23],2)) + ', R' + str(int(str(bin(ins))[8:13],2)) + ', R' + str(int(str(bin(ins))[13:18],2)) + '\n')
+	elif (op == 'SW'):
+		disOut.write(str(bin(ins))[2:3] + ' ' + str(bin(ins))[3:8] + ' ' + str(bin(ins))[8:13] + ' ' + str(bin(ins))[13:18] + ' ' + str(bin(ins))[18:23] + ' ' + str(bin(ins))[23:28] + ' ' + str(bin(ins))[28:] + '  ' + str(address) + '\t' + str(op) + '\tR' + str(int(str(bin(ins))[13:18],2)) + ', #' + str(int(str(bin(ins))[18:],2)) + '(' + str(int(str(bin(ins))[8:13],2)) + ')\n')
+	elif (op == 'LW'):
+		disOut.write(str(bin(ins))[2:3] + ' ' + str(bin(ins))[3:8] + ' ' + str(bin(ins))[8:13] + ' ' + str(bin(ins))[13:18] + ' ' + str(bin(ins))[18:23] + ' ' + str(bin(ins))[23:28] + ' ' + str(bin(ins))[28:] + '  ' + str(address) + '\t' + str(op) + '\tR' + str(int(str(bin(ins))[13:18],2)) + ', #' + str(int(str(bin(ins))[18:],2)) + '(' + str(int(str(bin(ins))[8:13],2)) + ')\n')
+	elif (op == 'BLTZ'):
+		disOut.write(str(bin(ins))[2:3] + ' ' + str(bin(ins))[3:8] + ' ' + str(bin(ins))[8:13] + ' ' + str(bin(ins))[13:18] + ' ' + str(bin(ins))[18:23] + ' ' + str(bin(ins))[23:28] + ' ' + str(bin(ins))[28:] + '  ' + str(address) + '\t' + str(op) + '\tR' + str(int(str(bin(ins))[8:13],2)) + ', #' + str(int(str(bin(ins))[18:],2)) + '\n')
+	elif (op == 'BEQ'):
+		disOut.write(str(bin(ins))[2:3] + ' ' + str(bin(ins))[3:8] + ' ' + str(bin(ins))[8:13] + ' ' + str(bin(ins))[13:18] + ' ' + str(bin(ins))[18:23] + ' ' + str(bin(ins))[23:28] + ' ' + str(bin(ins))[28:] + '  ' + str(address) + '\t' + str(op) + '\tR' + str(int(str(bin(ins))[8:13],2)) + ', ' + str(int(str(bin(ins))[13:18],2)) + ', #' + str(int(str(bin(ins))[18:],2)) + '\n')
+	elif (op == 'NOP'):
+		disOut.write(str(bin(ins))[2:3] + ' ' + str(bin(ins))[3:8] + ' ' + str(bin(ins))[8:13] + ' ' + str(bin(ins))[13:18] + ' ' + str(bin(ins))[18:23] + ' ' + str(bin(ins))[23:28] + ' ' + str(bin(ins))[28:] + '  ' + str(address) + '\t' + str(op) + '\n')
+	elif (op == 'BREAK'):
+		disOut.write(str(bin(ins))[2:3] + ' ' + str(bin(ins))[3:8] + ' ' + str(bin(ins))[8:13] + ' ' + str(bin(ins))[13:18] + ' ' + str(bin(ins))[18:23] + ' ' + str(bin(ins))[23:28] + ' ' + str(bin(ins))[28:] + '  ' + str(address) + '\t' + str(op) + '\n')
+
+def printDisData(instructions, addresses, data, location, disOut):
+	for x in range(1, len(data) + 1):
+		num = str(bin(instructions[location + x])[2:])
+		numLength = len(num)
+		if (numLength != 32):
+			numToAdd = 32 - numLength
+			num = str('0' * numToAdd) + str(num)
+		disOut.write(str(num) + '\t' + str(addresses[location + x]) + '\t' + str(int(data[x - 1])) + '\n')
 	
 def printSim(ins, registers, op, data, address, simOut, endPt):
 	#print sim stuff that modifies registers from here
@@ -358,7 +405,7 @@ def printSim(ins, registers, op, data, address, simOut, endPt):
 	elif (op == 'ADDI'):
 		simOut.write('cycle:' + str(cycle) + ' ' + str(address) + '\t' + str(op) + '\tR' + str(int(str(bin(ins))[13:18],2)) + ', R' + str(int(str(bin(ins))[8:13],2)) + ', #' + str(int(str(bin(ins))[18:],2)) + '\n\n')
 	elif (op == 'ADD'):
-		simOut.write('cycle:' + str(cycle) + ' ' + str(address) + '\t' + str(op) + '\tR' + str(int(str(bin(ins))[18:23],2)) + ', R' + str(int(str(bin(ins))[13:18],2)) + ', R' + str(int(str(bin(ins))[8:13],2)) + '\n\n')
+		simOut.write('cycle:' + str(cycle) + ' ' + str(address) + '\t' + str(op) + '\tR' + str(int(str(bin(ins))[18:23],2)) + ', R' + str(int(str(bin(ins))[8:13],2)) + ', R' + str(int(str(bin(ins))[13:18],2)) + '\n\n')
 	elif (op == 'JR'):
 		simOut.write('cycle:' + str(cycle) + ' ' + str(address) + '\t' + str(op) + '\tR' + str(int(bin(ins)[8:13],2)) + '\n\n')
 	elif (op == 'SUB'):
@@ -375,6 +422,18 @@ def printSim(ins, registers, op, data, address, simOut, endPt):
 		simOut.write('cycle:' + str(cycle) + ' ' + str(address) + '\t' + str(op) + '\n\n')
 	elif (op == 'BREAK'):
 		simOut.write('cycle:' + str(cycle) + ' ' + str(address) + '\t' + str(op) + '\n\n')
+	elif (op == 'OR'):
+		simOut.write('cycle:' + str(cycle) + ' ' + str(address) + '\t' + str(op) + '\tR' + str(int(str(bin(ins))[18:23],2)) + ', R' + str(int(str(bin(ins))[8:13],2)) + ', R' + str(int(str(bin(ins))[13:18],2)) + '\n\n')
+	elif (op == 'AND'):
+		simOut.write('cycle:' + str(cycle) + ' ' + str(address) + '\t' + str(op) + '\tR' + str(int(str(bin(ins))[18:23],2)) + ', R' + str(int(str(bin(ins))[8:13],2)) + ', R' + str(int(str(bin(ins))[13:18],2)) + '\n\n')
+	elif (op == 'SW'):
+		simOut.write('cycle:' + str(cycle) + ' ' + str(address) + '\t' + str(op) + '\tR' + str(int(str(bin(ins))[13:18],2)) + ', #' + str(int(str(bin(ins))[18:],2)) + '(R' + str(int(str(bin(ins))[8:13],2)) + ')\n\n')
+	elif (op == 'LW'):
+		simOut.write('cycle:' + str(cycle) + ' ' + str(address) + '\t' + str(op) + '\tR' + str(int(str(bin(ins))[13:18],2)) + ', #' + str(int(str(bin(ins))[18:],2)) + '(R' + str(int(str(bin(ins))[8:13],2)) + ')\n\n')
+	elif (op == 'BLTZ'):
+		simOut.write('cycle:' + str(cycle) + ' ' + str(address) + '\t' + str(op) + '\tR' + str(int(str(bin(ins))[8:13],2)) + ', #' + str(int(str(bin(ins))[18:],2)) + '\n\n')
+	elif (op == 'BEQ'):
+		simOut.write('cycle:' + str(cycle) + ' ' + str(address) + '\t' + str(op) + '\tR' + str(int(str(bin(ins))[8:13],2)) + ', ' + str(int(str(bin(ins))[13:18],2)) + ', #' + str(int(str(bin(ins))[18:],2)) + '\n\n')
 	
 	#outside if block:
 	simOut.write('registers:\nr00:\t' + str(registers[0]) + '\t' + str(registers[1]) + '\t' + str(registers[2]) + '\t' + str(registers[3]) + '\t' + str(registers[4]) + '\t' + str(registers[5]) + '\t' + str(registers[6]) + '\t' + str(registers[7]))
@@ -407,8 +466,13 @@ def printSim(ins, registers, op, data, address, simOut, endPt):
 	simOut.write('\n')
 
 #needs to be written
-def printInvalid(address):
-	print ''
+def printInvalid(ins, address, disOut):
+	binNum = str(bin(ins)[2:])
+	numLength = len(binNum)
+	if (numLength != 32):
+		numToAdd = 32 - numLength
+		binNum = str('0' * numToAdd) + str(binNum)
+	disOut.write(str(binNum)[2:3] + ' ' + str(binNum)[3:8] + ' ' + str(binNum)[8:13] + ' ' + str(binNum)[13:18] + ' ' + str(binNum)[18:23] + ' ' + str(binNum)[23:28] + ' ' + str(binNum)[28:] + '\t' + str(address) + '\t' + 'Invalid Instruction\n')
 
 def main():
 	#file io stuff:
@@ -428,26 +492,7 @@ def main():
 	funcBits = initializeFuncCodes(instructions)
 	validity = checkOPCode(opCode, stdOPCodes) #false if invalid, true if valid, makes for printing and reading easier later.
 	instructionEnd = getData(data, validity, instructions)
-	#checkWhatsUp(instructions, opCode, rsBits, funcBits, data, registers, addresses, validity, stdOPCodes)
 	determineInstruction(instructions, opCode, funcBits, stdOPCodes, validity, instructionEnd, data, registers, addresses, disOut, simOut)
-	
-def checkWhatsUp(instructions, opCode, rsBits, funcBits, data, registers, addresses, validity, stdOPCodes):
-	for x in range(0, len(instructions)):
-		print "ins: " + str(bin(instructions[x]))
-		print "op: " + str(opCode[x])
-		print "rs: " + str(rsBits[x])
-		print "func: " + str(funcBits[x])
-		print "addresses: " + str(addresses[x])
-		print "valid: " + str(validity[x]) + '\n'
-	
-	for x in range(0, len(data)):
-		print "data: " + str(data[x])
-		
-	for x in range(0, len(registers)):
-		print "reg: " + str(registers[x])
-	
-	for x in range(0, len(stdOPCodes)):
-		print "sops: " + str(stdOPCodes[x])
 
 if __name__ == "__main__":
 	main()

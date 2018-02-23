@@ -67,8 +67,8 @@ def initializeFuncCodes(instructions):
 def initializeOPCodes():
 	instructions = [[int('100010', 2), None, 'J'], [int('100000', 2), int('001000', 2), 'JR'], [int('100100', 2), None, 'BEQ'],
 					[int('100001', 2), None, 'BLTZ'], [int('100000', 2), int('100000', 2), 'ADD'], [int('101000', 2), None, 'ADDI'],
-					[int('100010', 2), int('100000', 2), 'SUB'], [int('101011', 2), None, 'SW'], [int('100011', 2), None, 'LW'],
-					[int('100000', 2), int('000000', 2), 'SLL'], [int('100000', 2), int('000010', 2), 'SRL'], [int('100000', 2), int('011000', 2), 'MUL'],
+					[int('100000', 2), int('100010', 2), 'SUB'], [int('101011', 2), None, 'SW'], [int('100011', 2), None, 'LW'],
+					[int('100000', 2), int('000000', 2), 'SLL'], [int('100000', 2), int('000010', 2), 'SRL'], [int('111100', 2), None, 'MUL'],
 					[int('100000', 2), int('100100', 2), 'AND'], [int('100000', 2), int('100101', 2), 'OR'], [int('100000', 2), int('001010', 2), 'MOVZ'],
 					[int('100000', 2), int('001101', 2), 'BREAK'], [int('100000', 2), int('000000', 2), 'NOP']] #nop is sll 0,0,0
 					#first six bits is normally opcode, however 1-5 will be used instead
@@ -125,8 +125,6 @@ def determineInstruction(instruction, opCode, funcBits, stdOPCodes, validity, en
 				SLL(instruction[x], registers, data, addresses[x], out1, out2, endPT)
 			elif (funcBits[x] == stdOPCodes[10][1]):
 				SRL(instruction[x], registers, data, addresses[x], out1, out2, endPT)
-			elif (funcBits[x] == stdOPCodes[11][1]):
-				MUL(instruction[x], registers, data, addresses[x], out1, out2, endPT)
 			elif (funcBits[x] == stdOPCodes[12][1]):
 				AND(instruction[x], registers, data, addresses[x], out1, out2, endPT)
 			elif (funcBits[x] == stdOPCodes[13][1]):
@@ -137,10 +135,13 @@ def determineInstruction(instruction, opCode, funcBits, stdOPCodes, validity, en
 				BREAK(instruction[x], registers, addresses[x], data, out1, out2, endPT)
 			elif (funcBits[x] == stdOPCodes[16][1]):
 				x = SLL(instruction[x], registers, addresses, data)
+			cycle = cycle + 1
 			#handle all other cases next
 		else:
 			if (opCode[x] == stdOPCodes[0][0]):
 				x = J(instruction[x], registers, addresses, data, addresses[x],out1,out2,endPT)
+			elif (opCode[x] == stdOPCodes[11][0]):
+				MUL(instruction[x], registers, data, addresses[x], out1, out2, endPT)
 			elif (opCode[x] == stdOPCodes[2][0]):
 				x = BEQ(instruction[x], registers, addresses, address[x], data, out1, out2, endPT)
 			elif (opCode[x] == stdOPCodes[3][0]):
@@ -151,15 +152,15 @@ def determineInstruction(instruction, opCode, funcBits, stdOPCodes, validity, en
 				SW(instruction[x], registers, data, addresses[x], out1, out2, endPT)
 			elif (opCode[x] == stdOPCodes[8][0]):
 				LW(instruction[x], registers, data, addresses[x], out1, out2, endPT)
-	cycle = cycle + 1
+			cycle = cycle + 1
 				
 	
 def ADD(ins, registers, data, address, out1, out2, endPt):
 	#ins is the full instruction.
 	#rs is at 25-21, rt is at 20-16, rd is at 15-11
-	rs = int(str(bin(ins))[7:12],2)
-	rt = int(str(bin(ins))[12:17],2)
-	rd = int(str(bin(ins))[17:22],2)
+	rs = int(str(bin(ins))[8:13],2)
+	rt = int(str(bin(ins))[13:18],2)
+	rd = int(str(bin(ins))[18:23],2)
 	op = 'ADD'
 	
 	registers[rd] = registers[rs] + registers[rt]
@@ -178,11 +179,10 @@ def ADDI(ins, registers, data, address, out1, out2, endPt):
 	printDis(ins, registers, op, data, address, out1, endPt)
 	printSim(ins, registers, op, data, address, out2, endPt)
 	
-#need to go through and add 1 to all the shit...
 def SUB(ins, registers, data, address, out1, out2, endPt):
-	rs = int(str(bin(ins))[7:12],2)
-	rt = int(str(bin(ins))[12:17],2)
-	rd = int(str(bin(ins))[17:22],2)
+	rs = int(str(bin(ins))[8:13],2)
+	rt = int(str(bin(ins))[13:18],2)
+	rd = int(str(bin(ins))[18:23],2)
 	op = 'SUB'
 	
 	registers[rd] = registers[rs] - registers[rt]
@@ -190,10 +190,10 @@ def SUB(ins, registers, data, address, out1, out2, endPt):
 	printDis(ins, registers, op, data, address, out1, endPt)
 	printSim(ins, registers, op, data, address, out2, endPt)
 	
-def MUL(iins, registers, data, address, out1, out2, endPt):
-	rs = int(str(bin(ins))[7:12],2)
-	rt = int(str(bin(ins))[12:17],2)
-	rd = int(str(bin(ins))[17:22],2)
+def MUL(ins, registers, data, address, out1, out2, endPt):
+	rs = int(str(bin(ins))[8:13],2)
+	rt = int(str(bin(ins))[13:18],2)
+	rd = int(str(bin(ins))[18:23],2)
 	op = 'MUL'
 	
 	registers[rd] = registers[rs] * registers[rt]
@@ -202,12 +202,12 @@ def MUL(iins, registers, data, address, out1, out2, endPt):
 	printSim(ins, registers, op, data, address, out2, endPt)
 	
 def MOVZ(ins, registers, data, address, out1, out2, endPt):
-	rs = int(str(bin(ins))[7:12],2)
-	rt = int(str(bin(ins))[12:17],2)
-	rd = int(str(bin(ins))[17:22],2)
+	rs = int(str(bin(ins))[8:13],2)
+	rt = int(str(bin(ins))[13:18],2)
+	rd = int(str(bin(ins))[18:23],2)
 	op = 'MOVZ'
-	
-	if (int(rt) == 0):
+
+	if (int(registers[rt]) == 0):
 		registers[rd] = registers[rs]
 		
 	printDis(ins, registers, op, data, address, out1, endPt)
@@ -215,7 +215,7 @@ def MOVZ(ins, registers, data, address, out1, out2, endPt):
 	
 def J(ins, registers, addresses, data, address, out1, out2, endPt):
 	#jumps to location 4*bin
-	addr = bin(ins)[7:]
+	addr = bin(ins)[8:]
 	addr = int(addr, 2)
 	addr = addr * 4
 	op = 'J'
@@ -227,7 +227,7 @@ def J(ins, registers, addresses, data, address, out1, out2, endPt):
 		if (int(addr) == addresses[x]):
 			return x
 def JR(ins, registers, addresses, data, address, out1, out2, endPt):
-	rs = int(str(bin(ins))[7:12],2)
+	rs = int(str(bin(ins))[8:13],2)
 	addr = registers[rs]
 	op = 'JR'
 	
@@ -239,9 +239,9 @@ def JR(ins, registers, addresses, data, address, out1, out2, endPt):
 			return x
 		
 def BEQ(ins, registers, addresses, address, data, out1, out2, endPt):
-	rs = int(str(bin(ins))[7:12],2)
-	rt = int(str(bin(ins))[12:17],2)
-	imm = int(str(bin(str(bin(ins))[17:])<< 2),2)
+	rs = int(str(bin(ins))[8:13],2)
+	rt = int(str(bin(ins))[13:18],2)
+	imm = int(str(bin(str(bin(ins))[18:])<< 2),2)
 	op = 'BEQ'
 	
 	printDis(ins, registers, op, data, address, out1, endPt)
@@ -251,8 +251,8 @@ def BEQ(ins, registers, addresses, address, data, out1, out2, endPt):
 		return (imm + 4 + address)
 	
 def BLTZ(ins, registers, addresses, address, data, out1, out2, endPt):
-	rs = int(str(bin(ins))[7:12],2)
-	imm = int(str(bin(str(bin(ins))[17:])<< 2),2)
+	rs = int(str(bin(ins))[8:13],2)
+	imm = int(str(bin(str(bin(ins))[18:])<< 2),2)
 	
 	printDis(ins, registers, op, data, address, out1, endPt)
 	printSim(ins, registers, op, data, address, out2, endPt)
@@ -261,9 +261,9 @@ def BLTZ(ins, registers, addresses, address, data, out1, out2, endPt):
 		return (imm + 4 + address)
 	
 def SW(ins, registers, data, address, out1, out2, endPt):
-	base = int(str(bin(ins))[7:12],2)
-	rt = int(str(bin(ins))[12:17],2)
-	offset = int(str(bin(ins))[17:],2)
+	base = int(str(bin(ins))[8:13],2)
+	rt = int(str(bin(ins))[13:18],2)
+	offset = int(str(bin(ins))[18:],2)
 	op = 'SW'
 	
 	data[int(base) + int(offset)] = rt
@@ -272,9 +272,9 @@ def SW(ins, registers, data, address, out1, out2, endPt):
 	printSim(ins, registers, op, data, address, out2, endPt)
 	
 def LW(ins, registers, data, address, out1, out2, endPt):
-	base = int(str(bin(ins))[7:12],2)
-	rt = int(str(bin(ins))[12:17],2)
-	offset = int(str(bin(ins))[17:],2)
+	base = int(str(bin(ins))[8:13],2)
+	rt = int(str(bin(ins))[13:18],2)
+	offset = int(str(bin(ins))[18:],2)
 	op = 'LW'
 	
 	registers[rt] = data[base + offset]
@@ -283,10 +283,10 @@ def LW(ins, registers, data, address, out1, out2, endPt):
 	printSim(ins, registers, op, data, address, out2, endPt)
 	
 def SLL(ins, registers, data, address, out1, out2, endPt):
-	rs = int(str(bin(ins))[7:12],2)
-	rt = int(str(bin(ins))[12:17],2)
-	rd = int(str(bin(ins))[17:22],2)
-	shamt = int(str(bin(ins))[22:27],2)
+	rs = int(str(bin(ins))[8:13],2)
+	rt = int(str(bin(ins))[13:18],2)
+	rd = int(str(bin(ins))[18:23],2)
+	shamt = int(str(bin(ins))[23:28],2)
 	
 	if (int(rs) == 0 and int(rd) == 0 and int(rt) == 0):
 		#NOP handling...
@@ -294,15 +294,15 @@ def SLL(ins, registers, data, address, out1, out2, endPt):
 		
 	else:
 		op = 'SLL'
-		registers[rd] = (int(registers[rt]) * (2^shamt))
+		registers[rd] = (int(registers[rt]) * (2^(shamt-1)))
 	
 	printDis(ins, registers, op, data, address, out1, endPt)
 	printSim(ins, registers, op, data, address, out2, endPt)
 	
 def SRL(ins, registers, data, address, out1, out2, endPt):
-	rt = int(str(bin(ins))[12:17],2)
-	rd = int(str(bin(ins))[17:22],2)
-	shamt = int(str(bin(ins))[22:27],2)
+	rt = int(str(bin(ins))[13:18],2)
+	rd = int(str(bin(ins))[18:23],2)
+	shamt = int(str(bin(ins))[23:28],2)
 	op = 'SRL'
 	
 	registers[rd] = (registers[rt] >> int(shamt))
@@ -311,9 +311,9 @@ def SRL(ins, registers, data, address, out1, out2, endPt):
 	printSim(ins, registers, op, data, address, out2, endPt)
 	
 def AND(ins, registers, data, address, out1, out2, endPt):
-	rs = int(str(bin(ins))[7:12],2)
-	rt = int(str(bin(ins))[12:17],2)
-	rd = int(str(bin(ins))[17:22],2)
+	rs = int(str(bin(ins))[8:13],2)
+	rt = int(str(bin(ins))[13:18],2)
+	rd = int(str(bin(ins))[18:23],2)
 	op = 'AND'
 	
 	registers[rd] = int(str((bin(registers[rs]) & bin(registers[rt]))),2)
@@ -322,9 +322,9 @@ def AND(ins, registers, data, address, out1, out2, endPt):
 	printSim(ins, registers, op, data, address, out2, endPt)
 	
 def OR(ins, registers, data, address, out1, out2, endPt):
-	rs = int(str(bin(ins))[7:12],2)
-	rt = int(str(bin(ins))[12:17],2)
-	rd = int(str(bin(ins))[17:22],2)
+	rs = int(str(bin(ins))[8:13],2)
+	rt = int(str(bin(ins))[13:18],2)
+	rd = int(str(bin(ins))[18:23],2)
 	op = 'OR'
 	
 	registers[rd] = int(str((bin(registers[rs]) | bin(registers[rt]))),2)
@@ -354,9 +354,27 @@ def printSim(ins, registers, op, data, address, simOut, endPt):
 	simOut.write('====================\n')
 	
 	if (op == 'J'):
-		simOut.write('cycle:' + str(cycle) + ' ' + str(address) + '\t' + str(op) + '\t#' + str((int(bin(ins)[7:],2)) * 4) + '\n\n')
-	if (op == 'ADDI'):
-		simOut.write('cycle:' + str(cycle) + ' ' + str(address) + '\t' + str(op) + '\t' + 'R' + str(int(str(bin(ins))[13:18],2)) + ', R' + str(int(str(bin(ins))[8:13],2)) + ', #' + str(int(str(bin(ins))[18:],2)) + '\n\n')
+		simOut.write('cycle:' + str(cycle) + ' ' + str(address) + '\t' + str(op) + '\t#' + str((int(bin(ins)[8:],2)) * 4) + '\n\n')
+	elif (op == 'ADDI'):
+		simOut.write('cycle:' + str(cycle) + ' ' + str(address) + '\t' + str(op) + '\tR' + str(int(str(bin(ins))[13:18],2)) + ', R' + str(int(str(bin(ins))[8:13],2)) + ', #' + str(int(str(bin(ins))[18:],2)) + '\n\n')
+	elif (op == 'ADD'):
+		simOut.write('cycle:' + str(cycle) + ' ' + str(address) + '\t' + str(op) + '\tR' + str(int(str(bin(ins))[18:23],2)) + ', R' + str(int(str(bin(ins))[13:18],2)) + ', R' + str(int(str(bin(ins))[8:13],2)) + '\n\n')
+	elif (op == 'JR'):
+		simOut.write('cycle:' + str(cycle) + ' ' + str(address) + '\t' + str(op) + '\tR' + str(int(bin(ins)[8:13],2)) + '\n\n')
+	elif (op == 'SUB'):
+		simOut.write('cycle:' + str(cycle) + ' ' + str(address) + '\t' + str(op) + '\tR' + str(int(str(bin(ins))[18:23],2)) + ', R' + str(int(str(bin(ins))[8:13],2)) + ', R' + str(int(str(bin(ins))[13:18],2)) + '\n\n')
+	elif (op == 'SLL'):
+		simOut.write('cycle:' + str(cycle) + ' ' + str(address) + '\t' + str(op) + '\tR' + str(int(str(bin(ins))[18:23],2)) + ', R' + str(int(str(bin(ins))[13:18],2)) + ', #' + str(int(str(bin(ins))[23:28],2)) + '\n\n')
+	elif (op == 'SRL'):
+		simOut.write('cycle:' + str(cycle) + ' ' + str(address) + '\t' + str(op) + '\tR' + str(int(str(bin(ins))[18:23],2)) + ', R' + str(int(str(bin(ins))[13:18],2)) + ', #' + str(int(str(bin(ins))[23:28],2)) + '\n\n')
+	elif (op == 'MUL'):
+		simOut.write('cycle:' + str(cycle) + ' ' + str(address) + '\t' + str(op) + '\tR' + str(int(str(bin(ins))[18:23],2)) + ', R' + str(int(str(bin(ins))[23:34],2)) + ', R' + str(int(str(bin(ins))[13:18],2)) + '\n\n')
+	elif (op == 'MOVZ'):
+		simOut.write('cycle:' + str(cycle) + ' ' + str(address) + '\t' + str(op) + '\tR' + str(int(str(bin(ins))[18:23],2)) + ', R' + str(int(str(bin(ins))[8:13],2)) + ', R' + str(int(str(bin(ins))[13:18],2)) + '\n\n')
+	elif (op == 'NOP'):
+		simOut.write('cycle:' + str(cycle) + ' ' + str(address) + '\t' + str(op) + '\n\n')
+	elif (op == 'BREAK'):
+		simOut.write('cycle:' + str(cycle) + ' ' + str(address) + '\t' + str(op) + '\n\n')
 	
 	#outside if block:
 	simOut.write('registers:\nr00:\t' + str(registers[0]) + '\t' + str(registers[1]) + '\t' + str(registers[2]) + '\t' + str(registers[3]) + '\t' + str(registers[4]) + '\t' + str(registers[5]) + '\t' + str(registers[6]) + '\t' + str(registers[7]))
@@ -386,6 +404,7 @@ def printSim(ins, registers, op, data, address, simOut, endPt):
 			infoLocation = infoLocation + 1
 			j = j + 1
 		simOut.write('\n')
+	simOut.write('\n')
 
 #needs to be written
 def printInvalid(address):

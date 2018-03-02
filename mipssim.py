@@ -93,9 +93,7 @@ def getData(data, validity, instructions):
 	startPt = len(validity) - 1
 	while (startPt >= 0):
 		if (validity[startPt]):
-			#print 'Location1: ' + str(location)
 			location = startPt + 1
-			#print 'Location2: ' + str(location)
 			startPt = -1
 		startPt = startPt - 1
 	returnPT = location

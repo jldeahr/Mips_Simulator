@@ -1,0 +1,1 @@
+python mipssim.py "BinFileName" "OutputFileName"
